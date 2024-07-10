@@ -4,15 +4,57 @@ SX_VM_CNONE();
 
 local libraryLoadAt = tick();
 
-local Signal = sharedRequire('utils/Signal.lua');
-local Services = sharedRequire('utils/Services.lua');
-local KeyBindVisualizer = sharedRequire('classes/KeyBindVisualizer.lua');
+-- Base URL for your GitHub repository
+local baseURL = "https://raw.githubusercontent.com/KIRITREEEE/f2f2f3f/main/files/"
 
-local CoreGui, Players, RunService, TextService, UserInputService, ContentProvider, HttpService, TweenService, GuiService, TeleportService = Services:Get('CoreGui', 'Players', 'RunService', 'TextService', 'UserInputService', 'ContentProvider', 'HttpService', 'TweenService', 'GuiService', 'TeleportService');
+-- Function to load a remote script with error handling
+local function loadRemoteScript(url)
+    local success, result = pcall(function()
+        local response = game:HttpGet(url)
+        if response then
+            return loadstring(response)()
+        else
+            error("Empty response")
+        end
+    end)
+    if not success then
+        warn("Failed to load script:", url, "Error:", result)
+    end
+    return success, result
+end
 
-local toCamelCase = sharedRequire('utils/toCamelCase.lua');
-local Maid = sharedRequire('utils/Maid.lua');
-local ToastNotif = sharedRequire('@classes/ToastNotif.lua');
+-- Load shared modules
+local function sharedRequire(module)
+    local url = baseURL .. module
+    local success, result = loadRemoteScript(url)
+    if not success then
+        warn("Failed to load shared module:", module)
+    end
+    return success, result
+end
+
+local SignalLoaded, Signal = sharedRequire('utils/Signal.lua')
+local ServicesLoaded, Services = sharedRequire('utils/Services.lua')
+local KeyBindVisualizerLoaded, KeyBindVisualizer = sharedRequire('classes/KeyBindVisualizer.lua')
+
+local CoreGui, Players, RunService, TextService, UserInputService, ContentProvider, HttpService, TweenService, GuiService, TeleportService
+if ServicesLoaded then
+    CoreGui, Players, RunService, TextService, UserInputService, ContentProvider, HttpService, TweenService, GuiService, TeleportService = Services:Get('CoreGui', 'Players', 'RunService', 'TextService', 'UserInputService', 'ContentProvider', 'HttpService', 'TweenService', 'GuiService', 'TeleportService')
+else
+    warn("Services failed to load")
+end
+
+local toCamelCaseLoaded, toCamelCase = sharedRequire('utils/toCamelCase.lua')
+local MaidLoaded, Maid = sharedRequire('utils/Maid.lua')
+local ToastNotifLoaded, ToastNotif = sharedRequire('classes/ToastNotif.lua')
+
+-- Check the status of each loaded module
+if not SignalLoaded then warn("Signal failed to load") end
+if not ServicesLoaded then warn("Services failed to load") end
+if not KeyBindVisualizerLoaded then warn("KeyBindVisualizer failed to load") end
+if not toCamelCaseLoaded then warn("toCamelCase failed to load") end
+if not MaidLoaded then warn("Maid failed to load") end
+if not ToastNotifLoaded then warn("ToastNotif failed to load") end
 
 local LocalPlayer = Players.LocalPlayer;
 local visualizer;
